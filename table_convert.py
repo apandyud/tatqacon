@@ -104,7 +104,10 @@ def convert_table(table):
             
             upper_heads = []
             for ih in reversed(range( 0, first_value_row_idx)):
-                upper_heads.append(table[ih][j])
+                header_table[ih][j])
+                if other_chars = '':
+                    if 
+                upper_heads.append()
 
             left_heads = []
             for jh in reversed(range( 0, first_value_col_idx)):
