@@ -78,16 +78,16 @@ def fill_column_headers(row):
             new_row.append(col_name)
     return new_row
 
-def detect_header_rows(table):
-    for idx, r in enumerate(reversed(new_table)):
-        if r[0] == '': ## header end
-            first_value_row_idx = len(new_table) - idx
-            break         
-    if first_value_row_idx is None:
-        for idx, r in enumerate(reversed(new_table)):
-            if all(not item for item in r[1:]):
-                first_value_row_idx = len(new_table) - idx                
-                break            
+#def detect_header_rows(table):
+#    for idx, r in enumerate(reversed(new_table)):
+#        if r[0] == '': ## header end
+#            first_value_row_idx = len(new_table) - idx
+#            break         
+#    if first_value_row_idx is None:
+#        for idx, r in enumerate(reversed(new_table)):
+#           if all(not item for item in r[1:]):
+#               first_value_row_idx = len(new_table) - idx                
+#               break            
 
     
     
@@ -95,19 +95,31 @@ def fill_table_headers(table):
     new_table = copy.deepcopy(table)
     
     first_value_col_idx = 1
-
+            
     first_value_row_idx = None 
     
     for idx, r in enumerate(reversed(new_table)):
         if r[0] == '': ## header end
-            first_value_row_idx = len(new_table) - idx
+            first_value_row_idx = max(len(new_table) - idx, first_value_col_idx)    
             break         
+            
     if first_value_row_idx is None:
         for idx, r in enumerate(reversed(new_table)):
             if all(not item for item in r[1:]):
                 first_value_row_idx = len(new_table) - idx                
                 break            
-                        
+
+    if first_value_row_idx is None:
+        first_value_row_idx = 1        
+                
+    if first_value_row_idx == 1 and  len(list(filter(None, table[first_value_row_idx-1]))) == 1: # summary header row
+        first_value_row_idx = 2
+
+    #while len(list(filter(None, table[first_value_row_idx-1]))) == 1: # summary header row        
+    #    first_value_row_idx =  first_value_row_idx +1
+    #    print('inc first_value_row_idx to ', first_value_row_idx)
+
+   
     for idx, r in enumerate(reversed(new_table[0:first_value_row_idx])):
        new_table[idx] = fill_column_headers(new_table[idx])    
         
@@ -147,14 +159,28 @@ def convert_table(table):
             #res.append({'number_value': number, 'scale': other_chars, 'categories': left_heads + upper_heads })
             res.append(item)
     return res
+
+def is_text_like(item):
+    # Returns True if the item does not contain digits, else False
+    return len(item)> 3 and not bool(re.search(r'\d', item)) 
     
 def detect_header_rows(table):
     res = [1]
     for idx, r in enumerate(table[1:]):
-        if r[0] == '' or all(not item for item in r[1:]):
+        if r[0] == '' or all(not item for item in r[1:]) or sum(1 for item in r[1:] if is_text_like(item)) > 1:
             res.append(1)
         else:
             res.append(0)        
+
+    # fix if header row is full filled
+    for idx, r in enumerate(res[1:]):
+        #print(idx)
+        if res[idx] == 0 or res[idx + 1] == 1: # previous row is not header or current is header
+             break;
+        if len(list(filter(None, table[idx]))) == 1: # prev row is summary header row    
+            #print('mod')
+            res[idx + 1] = 1
+            
     return res
 
 
@@ -171,19 +197,33 @@ def split_multitables(table):
         return [table]
 
     top_header_idx = 0
-    
-    for idx in range(1, len(hrs)-1):
-        if hrs[idx] == 1 and hrs[idx-1] == 1 and hrs[idx+1] == 0:
-            #print(idx-1)
-            top_header_idx = idx -1
-            multi_idxs.insert(0, idx)
-            break
+
+    simple_row_header = False
+    if hrs[0] == 1 and hrs[1] == 0:
+        #print('simple row header')
+        simple_row_header = True
+        top_header_idx = 0
+        multi_idxs.insert(0, 0)
+    else:
+        for idx in range(1, len(hrs)-1):
+            if hrs[idx] == 1 and hrs[idx-1] == 1 and hrs[idx+1] == 0:
+                #print('multi row header')
+                #print(idx-1)
+                top_header_idx = idx -1
+                multi_idxs.insert(0, idx)
+                break
     
     multi_idxs.append(len(table))
     
+    #print(multi_idxs)
+    
     tables = []
     for idx in range(len(multi_idxs[:-1])):
-        new_table = table[0:top_header_idx + 1]  + table[multi_idxs[idx]:multi_idxs[idx+1]]        
+        if simple_row_header:
+            new_table = table[multi_idxs[idx]:multi_idxs[idx+1]]        
+        else:
+            new_table = table[0:top_header_idx + 1]  + table[multi_idxs[idx]:multi_idxs[idx+1]]                            
+            
         tables.append(new_table)
         
     return tables 
