@@ -4,6 +4,9 @@ import copy
 
 
 def extract_number(input_str: str) -> Optional[Tuple[float, str]]:
+    if not detect_number(input_str) or detect_range(input_str):
+        return None
+    input_str = input_str.replace('−', '-')
     """
     Extracts a numeric value from a string and returns a tuple (number, other_characters).
     If no number is found, returns None.
@@ -20,12 +23,15 @@ def extract_number(input_str: str) -> Optional[Tuple[float, str]]:
     # Define a regex pattern for matching numbers
     pattern = r"""
         (?P<number>
-            [-+]?                        # Optional sign
+            [-–+]?                        # Optional sign
             (?:
                 \d{1,3}(?:,\d{3})*       # Integer with thousand separators
                 (?:\.\d+)?               # Optional decimal part
                 |
                 \d+\.\d+                 # Decimal number without thousand separators
+                |
+                \d+                      # Integer
+                (?:\.\d+)?               # Optional decimal part
             )
         )
         (?P<scale>[kKmM]?)               # Optional scale: k (thousand), m (million)
@@ -60,73 +66,81 @@ def extract_number(input_str: str) -> Optional[Tuple[float, str]]:
     
     return number, other_characters
 
+def detect_number(item):
+    allowed_chars = r"\,().\-–−+kKmM\s%\$bps"
+    pattern = f"^[0-9{allowed_chars}]*$"
+    return bool(re.fullmatch(pattern, item))
 
+def detect_range(item):
+    pattern = r"^[\d.,+]+\s*[–-]\s*[\d.,+]+$"
+    regex = re.compile(pattern, re.VERBOSE)
+    match = regex.search(item)
+    return bool(match)
+   
+def detect_year(item):
+    pattern = r"\b\d{4}\b"
+    regex = re.compile(pattern, re.VERBOSE)
+    match = regex.search(item.replace(' ', ''))
+    if not match:
+        return False
+    return True
+
+def detect_na(item):
+    pattern = r"^[-,–,—,\s,%,\$]+$"
+    regex = re.compile(pattern, re.VERBOSE)
+    match = regex.search(item)
+    return (bool(match) and item != '%' and item != '$') or item.upper().strip() == 'N/A' or item.upper().strip() == 'NM'
+    
 def fill_column_headers(row):    
     if row[0] != '':
-        return row
-    new_row = ['']
-    
+        return row    
     col_num = len([c for c in row if c!=''])    
-    step_size = int((len(row) - 1) / col_num)    
+    first_col = 1
+    val_range = len(row) - first_col
+    
+    # we assume haders start at position 1, and correct if not
+    # can be false solution if columns are aligned to left, and more than 1 non-value column is on the left 
+
+    if val_range % col_num:
+        first_col = first_col + val_range % col_num
+    else:
+        first_col = first_col
+    
+    step_size = int((len(row) - 1) / col_num)   
+    
+    
+    new_row = ['' for i in range(first_col)]
+    
+    #print('s', val_range, first_col, col_num, step_size)
     for i in range(col_num):
         col_name = None
         for j in range(step_size):
-            if row[1+i*step_size+j] != '':
-                col_name = row[1+i*step_size+j]
+            if row[first_col+i*step_size+j] != '':
+                col_name = row[first_col+i*step_size+j]
                 break
         for j in range(step_size):
             new_row.append(col_name)
+        
     return new_row
-
-#def detect_header_rows(table):
-#    for idx, r in enumerate(reversed(new_table)):
-#        if r[0] == '': ## header end
-#            first_value_row_idx = len(new_table) - idx
-#            break         
-#    if first_value_row_idx is None:
-#        for idx, r in enumerate(reversed(new_table)):
-#           if all(not item for item in r[1:]):
-#               first_value_row_idx = len(new_table) - idx                
-#               break            
-
     
-    
-def fill_table_headers(table):
+def fill_table_headers_v2(table):
     new_table = copy.deepcopy(table)
     
     first_value_col_idx = 1
             
     first_value_row_idx = None 
-    
-    for idx, r in enumerate(reversed(new_table)):
-        if r[0] == '': ## header end
-            first_value_row_idx = max(len(new_table) - idx, first_value_col_idx)    
-            break         
-            
-    if first_value_row_idx is None:
-        for idx, r in enumerate(reversed(new_table)):
-            if all(not item for item in r[1:]):
-                first_value_row_idx = len(new_table) - idx                
-                break            
 
-    if first_value_row_idx is None:
-        first_value_row_idx = 1        
-                
-    if first_value_row_idx == 1 and  len(list(filter(None, table[first_value_row_idx-1]))) == 1: # summary header row
-        first_value_row_idx = 2
+    hrs = detect_header_rows_v2(new_table)
 
-    #while len(list(filter(None, table[first_value_row_idx-1]))) == 1: # summary header row        
-    #    first_value_row_idx =  first_value_row_idx +1
-    #    print('inc first_value_row_idx to ', first_value_row_idx)
+    first_value_row_idx = hrs.index(0)
 
-   
     for idx, r in enumerate(reversed(new_table[0:first_value_row_idx])):
        new_table[idx] = fill_column_headers(new_table[idx])    
         
     return (new_table, first_value_col_idx, first_value_row_idx)
-
+    
 def convert_table(table):
-    (table, first_value_col_idx, first_value_row_idx) = fill_table_headers(table)
+    (table, first_value_col_idx, first_value_row_idx) = fill_table_headers_v2(table)
     res = []
     if first_value_col_idx is None or first_value_row_idx is None:
         return res
@@ -160,32 +174,72 @@ def convert_table(table):
             res.append(item)
     return res
 
-def is_text_like(item):
-    # Returns True if the item does not contain digits, else False
-    return len(item)> 3 and not bool(re.search(r'\d', item)) 
+def categorize_items(row):
+    res = []
+    for item in row:
+        if item.strip()  == '':
+            res.append('S')
+            continue
+        if detect_na(item):
+            res.append('N')
+            continue             
+        if detect_year(item):
+            res.append('T')
+            continue   
+        #if table_convert.detect_number(item):    
+        if extract_number(item):
+            res.append('N')
+            continue   
+        else: 
+            res.append('T')
+            continue   
+    return res  
     
-def detect_header_rows(table):
+def base_categorize_row(row):        
+    categories = ''.join( categorize_items(row))
+
+    if re.fullmatch('S*TS*', categories):
+        return 'STS' # header
+    if re.fullmatch('S+T+', categories):
+        return 'STT' # header
+    #if re.fullmatch('S*TS*TS*', categories):
+    if re.fullmatch('(S+T+)+S*', categories):
+        return 'STT' # header
+    elif re.fullmatch('T+S+', categories):
+        return 'TSS' # section header
+    elif re.fullmatch('S+', categories):
+        return 'SSS' # separator
+    elif re.fullmatch('T+(S+T+S*)+', categories):
+        return 'TTT' # section header
+    elif re.fullmatch('T+', categories):
+        return 'TTT' # section header
+    elif re.fullmatch('T+NT+', categories):
+        return 'TTT' # section header
+    elif re.fullmatch('T+NNT+', categories):
+        return 'TNN' #  possibly error in data
+    elif re.fullmatch('^S+N+$', categories):
+        return 'SNN' # section Total     
+    elif re.fullmatch('^T+S*N+$', categories):
+        return 'TNN' # Value
+    elif re.fullmatch('^T+(S*N+S*)+$', categories):
+        return 'TNN' # Value
+    #elif re.fullmatch('^T+(N*T*)*$', categories):
+    #     return 'H' # value row
+    else:
+        return 'TNN'
+
+def detect_header_rows_v2(table):
     res = [1]
     for idx, r in enumerate(table[1:]):
-        if r[0] == '' or all(not item for item in r[1:]) or sum(1 for item in r[1:] if is_text_like(item)) > 1:
+        cat = base_categorize_row(r)
+        if cat == 'STS' or cat == 'STT' or cat == 'TSS' or cat == 'TTT':
             res.append(1)
         else:
-            res.append(0)        
-
-    # fix if header row is full filled
-    for idx, r in enumerate(res[1:]):
-        #print(idx)
-        if res[idx] == 0 or res[idx + 1] == 1: # previous row is not header or current is header
-             break;
-        if len(list(filter(None, table[idx]))) == 1: # prev row is summary header row    
-            #print('mod')
-            res[idx + 1] = 1
-            
+            res.append(0)    
     return res
 
-
 def split_multitables(table):
-    hrs = detect_header_rows(table)
+    hrs = detect_header_rows_v2(table)
 
     multi_idxs = []
     for idx in range(1, len(hrs)-1):
@@ -215,7 +269,7 @@ def split_multitables(table):
     
     multi_idxs.append(len(table))
     
-    #print(multi_idxs)
+    #print(multi_idxs, simple_row_header)
     
     tables = []
     for idx in range(len(multi_idxs[:-1])):
