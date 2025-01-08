@@ -61,6 +61,8 @@ def extract_number(input_str: str) -> Optional[Tuple[float, str]]:
     elif scale == 'm':
         number *= 1_000_000
 
+    if '(' in input_str and ')'in input_str:
+        number = number * -1
     # Construct the other_characters string
     other_characters = f"{percent}{scale}".strip()
     
@@ -91,9 +93,19 @@ def detect_na(item):
     match = regex.search(item)
     return (bool(match) and item != '%' and item != '$') or item.upper().strip() == 'N/A' or item.upper().strip() == 'NM'
     
-def fill_column_headers(row):    
+def fill_column_headers(row):   
+    cat = base_categorize_row(row)
+    
+    #if cat == 'STS' or cat == 'STT' or cat == 'TSS' or cat == 'TTT':
+    if cat == 'TSS': # sub-header
+        new_row = []
+        for j in range(len(row)):
+            new_row.append(row[0]) 
+        return new_row
+        
     if row[0] != '':
         return row    
+    #print(row)
     col_num = len([c for c in row if c!=''])    
     first_col = 1
     val_range = len(row) - first_col
@@ -110,8 +122,15 @@ def fill_column_headers(row):
     
     
     new_row = ['' for i in range(first_col)]
+
     
-    #print('s', val_range, first_col, col_num, step_size)
+    #print('val_range', val_range, 'first_col', first_col,  'col_num', col_num, 'step_size', step_size)
+    #check, if fill needed
+    for i in range(col_num):        
+        if not any(row[first_col+i*step_size:first_col+(i+1)*step_size]):
+            return row
+    
+    #fill empty columns
     for i in range(col_num):
         col_name = None
         for j in range(step_size):
@@ -198,7 +217,7 @@ def categorize_items(row):
 def base_categorize_row(row):        
     categories = ''.join( categorize_items(row))
 
-    if re.fullmatch('S*TS*', categories):
+    if re.fullmatch('S+TS+', categories):
         return 'STS' # header
     if re.fullmatch('S+T+', categories):
         return 'STT' # header
