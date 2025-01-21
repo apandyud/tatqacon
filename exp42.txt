@@ -1,0 +1,167 @@
+Exp42
+Ezek a javultak es a rossyabb lettek:
+
+Javult:
+a983501d-2eec-486d-9661-e520c7c8af5e
+64c902c6-f426-4432-84b3-c10b3065716f
+94ef7822-a201-493e-b557-a640f4ea4d83
+73693527-ed4b-4d07-941e-0e654095a43d
+732c81f8-a16d-4d34-9917-fa98c195feec
+182dd9ea-dd5f-4ea0-bc30-bb42ef1f801c
+426e47ae-aff7-43e2-81be-0bb951b0def1
+3c257d89-4281-43df-998a-f7850b4fda9c
+524463b6-b8d7-410d-926a-699f7b7cdd99
+15cd82e8-7fe9-4529-a44f-eca0ce5137fb
+e4f21617-1a84-40e4-bdf0-671df88cb862
+359f9c4c-b405-40e5-88b5-86bfa0069b89
+c52dc053-375e-4b4d-b4ce-757bb39fa256
+e9b75381-50b1-4717-a322-31ed1eef4259
+56327885-98fe-40db-93f8-f762b1bf5d20
+6f65d33d-c721-45f9-9519-9ea4f5d7e740
+bbf04869-c442-4909-a65d-c7bc89b6e726
+
+Rosszabb lett:
+22e20f25-669a-46b9-8779-2768ba391955
+a81f1322-e74f-4e3c-a6cf-4b8d25d01cf5
+440e65d7-7c5c-4a28-871c-a828fa9860f3
+aa4b7a98-1ec7-4bd8-a258-e928e92c9f75
+85bc877a-ecc1-4d1a-9e45-6ddb6d0a4dc3
+973464b5-a5fe-4381-9bc5-e225f5ba9a2c
+a8ab5675-0560-4cd0-a294-76fd54b04ad6
+5a09d607-3502-4451-9d1a-a222dfc32968
+19bf32fd-847e-4449-84cf-f2f3df81b71b
+710bc8e8-3a6b-42ef-b122-a348250715f1
+54b11fb5-014a-4042-affa-fe96ea5e5eaa
+b4a95b0a-37ee-4d0b-bc03-12bcd8753011
+2cbf4301-6904-43a6-9fc0-0aa2869fff4f
+ceb35697-abdc-4acf-a54f-5b6716749d2b
+6a9b6186-6fea-4846-a230-053903f31e2d
+
+Ezekre optimalizéltam a promptot:
+
+** V1 - before
+"Generate a Python function 'run(value_list)' that can answer the question using the list of annotated values! "+
+            "The function must return a tuple (number, scale). The resulting number is a float with accuracy to two decimal places. Scale usually is thousand, million, billion, percent or an empty string. "+
+            "The calculation usually involves two steps: a selection and a calculation on selected data. "+
+            "If the question is about calculating the year average, you must calculate the average between the given year and the previous one. ex. 2015_average = (2015_value + 2014_value)/2  "+
+            "If the question is about calculating the change between year averages, apply the previous logic and take difference. " +            
+            "Expenses are revenue minus net income. " +            
+            "To calculate the difference, use absolute value. " +
+            #"To calculate difference, use equation: difference = abs(signed_new_value - signed_old_value)." +
+            #"To calculate change, use equation: change = (2*signed_new_value - 2*signed_old_value)/2. "+
+            #"To calculate percentage change, use equation: percentage_change = (2*signed_new_value - 2*signed_old_value)/2*signed_old_value * 100. " +
+            "To calculate proportion, do not calculate percentage. " +
+            "Use all given year values if no year specified. " +
+            "The code must be specific to the provided value list. " +
+            "Do not generate explanation, nor example code, just the function. "                  
+        ),               
+        ),0.46875, 0.8004032258064516, 0.5967741935483871
+
+** V2 - after	
+" "Generate a Python function 'run(value_list)' that can answer the question using the list of annotated values! "+
+            "The function must return a tuple (number, scale). The resulting number is a float with accuracy to two decimal places. Scale usually is thousand, million, billion, percent or an empty string. "+
+            "The calculation usually involves two steps: a selection and a calculation on selected data. "+
+            "If the question is about calculating the year average, you must calculate the average between the given year and the previous one. ex. 2015_average = (2015_value + 2014_value)/2  "+
+            "If the question is about calculating the change between year averages, apply the previous logic and take difference. " +            
+            "Expenses are revenue minus net income. " +            
+            "To calculate the difference, use absolute value. " +
+            #"To calculate difference, use equation: difference = abs(signed_new_value - signed_old_value)." +
+            #"To calculate change, use equation: change = (2*signed_new_value - 2*signed_old_value)/2. "+
+            "To calculate percentage change, use equation: percentage_change = (2*signed_new_value - 2*signed_old_value)/2*signed_old_value * 100. " +
+            "To calculate proportion, do not calculate percentage. " +
+            "Use all given year values if no year specified. " +
+            "The code must be specific to the provided value list. " +
+            "Do not generate explanation, nor example code, just the function. "         
+        ),0.53125, full: 0.8044354838709677, 0.6008064516129032
+
+** V3	
+		"human",
+            "Generate a Python function 'run(value_list)' that can answer the question using the list of annotated values! "+
+            "The function must return a tuple (number, scale). The resulting number is a float with accuracy to two decimal places. Scale usually is thousand, million, billion, percent or an empty string. "+
+            "The calculation usually involves two steps: a selection and a calculation on selected data. "+
+            "If the question is about calculating the year average, you must calculate the average between the given year and the previous one. ex. 2015_average = (2015_value + 2014_value)/2  "+
+            "If the question is about calculating the change between year averages, apply the previous logic and take difference. " +            
+            "Expenses are revenue minus net income. " +            
+            #"To calculate the difference, use absolute value. " +
+            "To calculate difference, use equation: difference = abs(signed_new_value - signed_old_value)." +
+            #"To calculate change, use equation: change = (2*signed_new_value - 2*signed_old_value)/2. "+
+            "To calculate percentage change, use equation: percentage_change = (2*signed_new_value - 2*signed_old_value)/2*signed_old_value * 100. " +
+            "To calculate proportion, do not calculate percentage. " +
+            "Use all given year values if no year specified. " +
+            "The code must be specific to the provided value list. " +
+            "Do not generate explanation, nor example code, just the function. "        
+			,0.40
+** V4		
+			   "Generate a Python function 'run(value_list)' that can answer the question using the list of annotated values! "+
+            "The function must return a tuple (number, scale). The resulting number is a float with accuracy to two decimal places. Scale usually is thousand, million, billion, percent or an empty string. "+
+            "The calculation usually involves two steps: a selection and a calculation on selected data. "+
+            "If the question is about calculating the year average, you must calculate the average between the given year and the previous one. ex. 2015_average = (2015_value + 2014_value)/2  "+
+            "If the question is about calculating the change between year averages, apply the previous logic and take difference. " +            
+            "Expenses are revenue minus net income. " +            
+            "To calculate the difference, use absolute value. " +
+            #"To calculate difference, use equation: difference = abs(signed_new_value - signed_old_value)." +
+            "To calculate change, use equation: change = (2*signed_new_value - 2*signed_old_value)/2. "+
+            "To calculate percentage change, use equation: percentage_change = (2*signed_new_value - 2*signed_old_value)/2*signed_old_value * 100. " +
+            "To calculate proportion, do not calculate percentage. " +
+            "Use all given year values if no year specified. " +
+            "The code must be specific to the provided value list. " +
+            "Do not generate explanation, nor example code, just the function. "   
+			0.5625
+
+** V5			
+			            "Generate a Python function 'run(value_list)' that can answer the question using the list of annotated values! "+
+            "The function must return a tuple (number, scale). The resulting number is a float with accuracy to two decimal places. Scale usually is thousand, million, billion, percent or an empty string. "+
+            "The calculation usually involves two steps: a selection and a calculation on selected data. "+
+            "If the question is about calculating the year average, you must calculate the average between the given year and the previous one. ex. 2015_average = (2015_value + 2014_value)/2  "+
+            "If the question is about calculating the change between year averages, apply the previous logic and take difference. " +            
+            "Expenses are revenue minus net income. " +            
+            #"To calculate the difference, use absolute value. " +
+            "To calculate difference, use equation: difference = abs(signed_new_value - signed_old_value)." +
+            "To calculate change, use equation: change = (2*signed_new_value - 2*signed_old_value)/2. "+
+            "To calculate percentage change, use equation: percentage_change = (2*signed_new_value - 2*signed_old_value)/2*signed_old_value * 100. " +
+            "To calculate proportion, do not calculate percentage. " +
+            "Use all given year values if no year specified. " +
+            "The code must be specific to the provided value list. " +
+            "Do not generate explanation, nor example code, just the function. "  
+			
+			0.5
+			
+** V6
+			
+			 "Generate a Python function 'run(value_list)' that can answer the question using the list of annotated values! "+
+            "The function must return a tuple (number, scale). The resulting number is a float with accuracy to two decimal places. Scale usually is thousand, million, billion, percent or an empty string. "+
+            "The calculation usually involves two steps: a selection and a calculation on selected data. "+
+            "If the question is about calculating the year average, you must calculate the average between the given year and the previous one. ex. 2015_average = (2015_value + 2014_value)/2  "+
+            "If the question is about calculating the change between year averages, apply the previous logic and take difference. " +            
+            "Expenses are revenue minus net income. " +            
+            "To calculate the difference, use absolute value. " +
+            #"To calculate difference, use equation: difference = abs(signed_new_value - signed_old_value)." +
+            "To calculate change, use equation: change = (2*signed_new_value - 2*signed_old_value)/2. "+
+            "To calculate percentage change, use equation: percentage_change = (2*signed_new_value - 2*signed_old_value)/2*signed_old_value * 100. " +
+            "To calculate proportion, do NOT multiply by 100. " +
+            "Use all given year values if no year specified. " +
+            "The code must be specific to the provided value list. " +
+            "Do not generate explanation, nor example code, just the function. "
+			
+			0.625, full: 0.5846774193548387, 0.7862903225806451
+			
+** V7	"Generate a Python function 'run(value_list)' that can answer the question using the list of annotated values! "+
+            "The function must return a tuple (number, scale). The resulting number is a float with accuracy to two decimal places. Scale usually is thousand, million, billion, percent or an empty string. "+
+            "The calculation usually involves two steps: a selection and a calculation on selected data. "+
+            "If the question is about calculating the year average, you must calculate the average between the given year and the previous one. ex. 2015_average = (2015_value + 2014_value)/2  "+
+            "If the question is about calculating the change between year averages, apply the previous logic and take difference. " +            
+            "Expenses are revenue minus net income. " +            
+            #"To calculate the difference, use absolute value. " +
+            "To calculate difference, use equation: difference = abs(signed_new_value - signed_old_value)." +
+            "To calculate change, use equation: change = (2*signed_new_value - 2*signed_old_value)/2. "+
+            "To calculate percentage change, use equation: percentage_change = (2*signed_new_value - 2*signed_old_value)/2*signed_old_value * 100. " +
+            "To calculate proportion, do NOT multiply by 100. " +
+            "Use all given year values if no year specified. " +
+            "The code must be specific to the provided value list. " +
+            "Do not generate explanation, nor example code, just the function. "           
+			0.5
+			
+			
+			
+			
+			
