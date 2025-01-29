@@ -11,6 +11,12 @@ import pandas as pd
 import numpy as np
 import json
 
+def eval_predicted_value(pred_value, gold_value):
+    llimit = gold_value*0.9999
+    ulimit = gold_value*1.0001
+    good = isinstance(pred_value, float) and ((pred_value > 0 and llimit < pred_value and pred_value < ulimit) or (pred_value < 0 and llimit > pred_value and pred_value > ulimit) or pred_value==ulimit or pred_value == llimit)      
+    return good
+    
 def meta2docs(spss_meta, excluded = ['CNTRYID']):
     docs = []
     for col in  spss_meta.column_names:
