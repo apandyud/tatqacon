@@ -14,6 +14,11 @@ import json
 def eval_predicted_value(pred_value, gold_value):
     llimit = gold_value*0.9999
     ulimit = gold_value*1.0001
+    #print (llimit, ulimit)
+    if  isinstance(pred_value, int):
+        pred_value = float(pred_value)
+    if  isinstance(gold_value, int):
+        gold_value = float(gold_value)
     good = isinstance(pred_value, float) and ((pred_value > 0 and llimit < pred_value and pred_value < ulimit) or (pred_value < 0 and llimit > pred_value and pred_value > ulimit) or pred_value==ulimit or pred_value == llimit)      
     return good
     

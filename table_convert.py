@@ -157,13 +157,38 @@ def fill_table_headers_v2(table):
        new_table[idx] = fill_column_headers(new_table[idx])    
         
     return (new_table, first_value_col_idx, first_value_row_idx)
+
+def apply_rules(header_text):
+    if 'USDm' in  header_text:
+        header_text  = header_text.replace('USDm', 'USD million').strip()
+    if '$M' in  header_text:
+        header_text  = header_text.replace('$M', '$ million').strip()
+    if '€m' in  header_text:
+        header_text  = header_text.replace('€m', '€ million').strip()
+    if '£m' in  header_text:
+        header_text  = header_text.replace('£m', '£ million').strip()
+        
+    if "’000" in  header_text:
+        header_text  = header_text.replace("’000", 'thousand').strip()
+    if "'000" in  header_text:
+        header_text  = header_text.replace("'000", 'thousand').strip()
+        
+    return header_text
     
 def convert_table(table):
     (table, first_value_col_idx, first_value_row_idx) = fill_table_headers_v2(table)
     res = []
     if first_value_col_idx is None or first_value_row_idx is None:
         return res
+    
+    global_headers = []
+    
+    for i in range(0, first_value_row_idx):
+        cell = table[i][0]        
+        if cell and cell.strip():            
+            global_headers.append(apply_rules(cell))
         
+    
     for i in range(first_value_row_idx, len(table)):           
         for j in range(first_value_col_idx, len(table[0])):            
             r = extract_number(table[i][j])
@@ -176,12 +201,13 @@ def convert_table(table):
                 header_text = table[ih][j]
                 if header_text is None:
                     continue
-                if other_chars == '':
-                    if '€m' in  header_text:
-                        header_text  = header_text.replace('€m', '').strip()
-                        other_chars = 'million'
+                    
+                header_text = apply_rules(header_text)
+                
                 upper_heads.append(header_text)
-
+                
+            upper_heads = upper_heads  + global_headers
+            
             left_heads = []
             for jh in reversed(range( 0, first_value_col_idx)):
                 left_heads.append(table[i][jh])
