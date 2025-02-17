@@ -207,6 +207,11 @@ def convert_table(table):
                 upper_heads.append(header_text)
                 
             upper_heads = upper_heads  + global_headers
+
+            if any( 'million' in head.lower() for head in upper_heads):
+                other_chars = 'million'
+            if any( 'thousand' in head.lower() for head in upper_heads):
+                other_chars = 'thousand'
             
             left_heads = []
             for jh in reversed(range( 0, first_value_col_idx)):
